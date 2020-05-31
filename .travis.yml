@@ -1,0 +1,26 @@
+sudo: required
+
+services:
+    - docker
+
+before_install:
+    - docker build -t alyhdr/react-test -f ./client/Dockerfile.dev ./client
+
+scripts:
+    - docker run -e CI=true alyhdr/react-test npm test
+
+after_success:
+    - docker build -t alyhdr/multi-client ./client
+    - docker build -t alyhdr/multi-nginx ./nginx
+    - docker build -t alyhdr/multi-server ./server
+    - docker build -t alyhdr/multi-worker ./worker
+    # login to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # take those images and push them to docker hub
+    - docker push alyhdr/multi-client
+    - docker push alyhdr/multi-nginx
+    - docker push alyhdr/multi-server
+    - docker push alyhdr/multi-worker
+    
+
+    
